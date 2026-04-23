@@ -12,6 +12,7 @@ public class User {
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Knowledge> knowledgeList;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,6 +25,10 @@ public class User {
     @Column(unique = true)
     private String email;
 
+    @NotBlank(message = "Password cannot be empty")
+    private String password;
+
+    // Getters & Setters
     public Long getId() {
         return id;
     }
@@ -36,6 +41,10 @@ public class User {
         return email;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -46,6 +55,10 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public List<Knowledge> getKnowledgeList() {

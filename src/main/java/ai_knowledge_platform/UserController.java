@@ -16,7 +16,18 @@ public class UserController {
 
     // ✅ CREATE
     @PostMapping
-public User createUser(@Valid @RequestBody User user) {
+    public User createUser(@Valid @RequestBody User user) {
+        return repo.save(user);
+    }
+
+    @PostMapping("/signup")
+    public User signup(@Valid @RequestBody User user) {
+
+        // Check if email already exists
+        if (repo.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+
         return repo.save(user);
     }
 
@@ -35,15 +46,15 @@ public User createUser(@Valid @RequestBody User user) {
 
     // ✅ UPDATE
     @PutMapping("/{id}")
-public User updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
-    User existingUser = repo.findById(id)
-            .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    public User updateUser(@PathVariable Long id, @Valid @RequestBody User user) {
+        User existingUser = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-    existingUser.setName(user.getName());
-    existingUser.setEmail(user.getEmail());
+        existingUser.setName(user.getName());
+        existingUser.setEmail(user.getEmail());
 
-    return repo.save(existingUser);
-}
+        return repo.save(existingUser);
+    }
 
     // ✅ DELETE
     @DeleteMapping("/{id}")
