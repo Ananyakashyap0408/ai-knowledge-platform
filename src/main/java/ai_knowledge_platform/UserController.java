@@ -31,6 +31,19 @@ public class UserController {
         return repo.save(user);
     }
 
+    @PostMapping("/login")
+    public String login(@RequestBody User user) {
+
+        User existingUser = repo.findByEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!existingUser.getPassword().equals(user.getPassword())) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        return JwtUtil.generateToken(existingUser.getEmail());
+    }
+
     // ✅ GET ALL
     @GetMapping
     public List<User> getUsers() {

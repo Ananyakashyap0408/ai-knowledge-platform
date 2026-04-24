@@ -17,9 +17,10 @@ Backend system built using Spring Boot with focus on scalable architecture, clou
 - Cloud-ready design
 
 ## 📌 Progress
-- Day 1: Spring Boot project setup and first API ✅  
+- Day 1: Spring Boot setup and initial API ✅  
 - Day 2: PostgreSQL integration and User CRUD APIs ✅  
-- Day 3: Signup API with validation, unique email constraint, and database persistence ✅  
+- Day 3: Signup API with validation and unique email constraint ✅  
+- Day 4: Login API with JWT authentication and token generation ✅  
 
 
 ## 🚀 Run Project
