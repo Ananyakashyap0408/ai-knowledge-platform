@@ -27,6 +27,7 @@ Backend system built using Spring Boot with focus on scalable architecture, clou
 - Day 4: Login API + JWT token generation ✅
 - Day 5: Secured APIs using JWT ✅
 - Day 6: File Upload API (local storage) ✅
+- Day 7: Cloud file upload using Cloudinary + storing file metadata in DB + secure API + user linkage ✅
 
 ## 🚀 Run Project
 ```bash

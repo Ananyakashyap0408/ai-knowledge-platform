@@ -2,18 +2,29 @@ package ai_knowledge_platform;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
+import java.util.Map;
+
 import jakarta.validation.Valid;
-import java.io.File; // ✅ IMPORTANT
+
+import com.cloudinary.Cloudinary;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
     private final UserRepository repo;
+    private final Cloudinary cloudinary;
+    private final KnowledgeRepository knowledgeRepo;
 
-    public UserController(UserRepository repo) {
+    // ✅ SINGLE constructor (FIXED)
+    public UserController(UserRepository repo,
+            Cloudinary cloudinary,
+            KnowledgeRepository knowledgeRepo) {
         this.repo = repo;
+        this.cloudinary = cloudinary;
+        this.knowledgeRepo = knowledgeRepo;
     }
 
     // ✅ SIGNUP
@@ -41,34 +52,36 @@ public class UserController {
         return JwtUtil.generateToken(existingUser.getEmail());
     }
 
-    // ✅ UPLOAD FILE
+    // ✅ UPLOAD FILE (Cloudinary + DB)
     @PostMapping("/upload")
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public String uploadFile(@RequestParam("file") MultipartFile file,
+            @RequestParam("userId") Long userId) {
         try {
 
-            if (file.isEmpty()) {
-                return "File is empty";
-            }
+            // 1. Upload to Cloudinary
+            Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    Map.of("resource_type", "auto"));
 
-            String uploadDir = System.getProperty("user.dir") + "/uploads/";
-            File directory = new File(uploadDir);
+            String fileUrl = uploadResult.get("secure_url").toString();
 
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
+            // 2. Get user
+            User user = repo.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-            String filePath = uploadDir + file.getOriginalFilename();
+            // 3. Save in DB
+            Knowledge knowledge = new Knowledge();
+            knowledge.setFileName(file.getOriginalFilename());
+            knowledge.setFileUrl(fileUrl);
+            knowledge.setUser(user);
 
-            // 👇 ADD THIS LINE HERE
-            System.out.println("Saving file to: " + filePath);
+            knowledgeRepo.save(knowledge);
 
-            file.transferTo(new File(filePath));
-
-            return "File uploaded successfully: " + file.getOriginalFilename();
+            return "File uploaded & saved: " + fileUrl;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "File upload failed: " + e.getMessage();
+            return "Upload failed: " + e.getMessage();
         }
     }
 
@@ -76,6 +89,11 @@ public class UserController {
     @GetMapping
     public List<User> getUsers() {
         return repo.findAll();
+    }
+
+    @GetMapping("/files")
+    public List<Knowledge> getAllFiles() {
+        return knowledgeRepo.findAll();
     }
 
     // ✅ GET BY ID

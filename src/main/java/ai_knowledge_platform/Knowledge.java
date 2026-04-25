@@ -10,6 +10,11 @@ public class Knowledge {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 🆕 File info
+    private String fileName;
+    private String fileUrl;
+
+    // (Optional: keep for future AI text)
     private String title;
     private String content;
 
@@ -19,19 +24,51 @@ public class Knowledge {
     private User user;
 
     // Getters & Setters
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getTitle() { return title; }
+    public String getFileName() {
+        return fileName;
+    }
 
-    public String getContent() { return content; }
+    public String getFileUrl() {
+        return fileUrl;
+    }
 
-    public User getUser() { return user; }
+    public String getTitle() {
+        return title;
+    }
 
-    public void setId(Long id) { this.id = id; }
+    public String getContent() {
+        return content;
+    }
 
-    public void setTitle(String title) { this.title = title; }
+    public User getUser() {
+        return user;
+    }
 
-    public void setContent(String content) { this.content = content; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public void setUser(User user) { this.user = user; }
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
