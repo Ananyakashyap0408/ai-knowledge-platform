@@ -1,8 +1,10 @@
 package ai_knowledge_platform;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import jakarta.validation.Valid;
+import java.io.File; // ✅ IMPORTANT
 
 @RestController
 @RequestMapping("/users")
@@ -14,16 +16,10 @@ public class UserController {
         this.repo = repo;
     }
 
-    // ✅ CREATE
-    @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
-        return repo.save(user);
-    }
-
+    // ✅ SIGNUP
     @PostMapping("/signup")
     public User signup(@Valid @RequestBody User user) {
 
-        // Check if email already exists
         if (repo.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("Email already exists");
         }
@@ -31,6 +27,7 @@ public class UserController {
         return repo.save(user);
     }
 
+    // ✅ LOGIN
     @PostMapping("/login")
     public String login(@RequestBody User user) {
 
@@ -44,14 +41,45 @@ public class UserController {
         return JwtUtil.generateToken(existingUser.getEmail());
     }
 
-    // ✅ GET ALL
+    // ✅ UPLOAD FILE
+    @PostMapping("/upload")
+    public String uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+
+            if (file.isEmpty()) {
+                return "File is empty";
+            }
+
+            String uploadDir = System.getProperty("user.dir") + "/uploads/";
+            File directory = new File(uploadDir);
+
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            String filePath = uploadDir + file.getOriginalFilename();
+
+            // 👇 ADD THIS LINE HERE
+            System.out.println("Saving file to: " + filePath);
+
+            file.transferTo(new File(filePath));
+
+            return "File uploaded successfully: " + file.getOriginalFilename();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "File upload failed: " + e.getMessage();
+        }
+    }
+
+    // ✅ GET ALL USERS
     @GetMapping
     public List<User> getUsers() {
         return repo.findAll();
     }
 
     // ✅ GET BY ID
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public User getUserById(@PathVariable Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));

@@ -26,7 +26,7 @@ public class User {
     private String email;
 
     @NotBlank(message = "Password cannot be empty")
-    @JsonIgnore
+    // @JsonIgnore
     private String password;
 
     // Getters & Setters

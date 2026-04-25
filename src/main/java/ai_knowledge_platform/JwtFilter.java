@@ -20,22 +20,33 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
+        String path = request.getServletPath();
+
+        // ✅ Skip JWT for auth APIs
+        if (path.startsWith("/users/signup") || path.startsWith("/users/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
             String token = authHeader.substring(7);
 
-            if (JwtUtil.validateToken(token)) {
+            try {
+                if (JwtUtil.validateToken(token)) {
 
-                String email = JwtUtil.extractEmail(token);
+                    String email = JwtUtil.extractEmail(token);
 
-                // 🔥 THIS IS THE MISSING PART
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
-                        null, Collections.emptyList());
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            email,
+                            null,
+                            Collections.emptyList());
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
