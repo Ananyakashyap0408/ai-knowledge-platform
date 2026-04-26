@@ -1,5 +1,6 @@
 package ai_knowledge_platform;
 
+import org.apache.tika.Tika;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +19,7 @@ public class UserController {
     private final Cloudinary cloudinary;
     private final KnowledgeRepository knowledgeRepo;
 
-    // ✅ SINGLE constructor (FIXED)
+    // ✅ Constructor Injection
     public UserController(UserRepository repo,
             Cloudinary cloudinary,
             KnowledgeRepository knowledgeRepo) {
@@ -52,7 +53,7 @@ public class UserController {
         return JwtUtil.generateToken(existingUser.getEmail());
     }
 
-    // ✅ UPLOAD FILE (Cloudinary + DB)
+    // ✅ UPLOAD FILE (Cloudinary + Text Extraction + DB)
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file,
             @RequestParam("userId") Long userId) {
@@ -65,14 +66,20 @@ public class UserController {
 
             String fileUrl = uploadResult.get("secure_url").toString();
 
-            // 2. Get user
+            // 2. Extract text using Tika
+            Tika tika = new Tika();
+            String content = tika.parseToString(file.getInputStream());
+
+            // 3. Get user
             User user = repo.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // 3. Save in DB
+            // 4. Save in DB
             Knowledge knowledge = new Knowledge();
             knowledge.setFileName(file.getOriginalFilename());
             knowledge.setFileUrl(fileUrl);
+            knowledge.setTitle(file.getOriginalFilename());
+            knowledge.setContent(content);
             knowledge.setUser(user);
 
             knowledgeRepo.save(knowledge);
@@ -91,12 +98,13 @@ public class UserController {
         return repo.findAll();
     }
 
+    // ✅ GET ALL FILES
     @GetMapping("/files")
     public List<Knowledge> getAllFiles() {
         return knowledgeRepo.findAll();
     }
 
-    // ✅ GET BY ID
+    // ✅ GET USER BY ID
     @GetMapping("/{id:\\d+}")
     public User getUserById(@PathVariable Long id) {
         return repo.findById(id)

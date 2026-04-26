@@ -10,12 +10,13 @@ public class Knowledge {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 🆕 File info
+    // 📁 File info
     private String fileName;
     private String fileUrl;
 
-    // (Optional: keep for future AI text)
+    // 🧠 Extracted content (Day 8)
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     // 🔗 Many Knowledge → One User

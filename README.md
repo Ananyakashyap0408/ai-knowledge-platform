@@ -23,11 +23,12 @@ Backend system built using Spring Boot with focus on scalable architecture, clou
 ## 📌 Progress
 - Day 1: Project setup + first API ✅
 - Day 2: Database + User APIs ✅
-- Day 3: Signup API with validation ✅
-- Day 4: Login API + JWT token generation ✅
-- Day 5: Secured APIs using JWT ✅
-- Day 6: File Upload API (local storage) ✅
-- Day 7: Cloud file upload using Cloudinary + storing file metadata in DB + secure API + user linkage ✅
+- Day 3: Signup API + validation ✅
+- Day 4: Login API + JWT generation ✅
+- Day 5: Secure APIs with JWT ✅
+- Day 6: File upload API (local storage) ✅
+- Day 7: Cloud file upload using Cloudinary + DB storage + user linkage ✅
+- Day 8: File content extraction using Apache Tika + storing extracted text in DB ✅
 
 ## 🚀 Run Project
 ```bash
