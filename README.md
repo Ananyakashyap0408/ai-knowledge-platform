@@ -30,6 +30,7 @@ Backend system built using Spring Boot with focus on scalable architecture, clou
 - Day 7: Cloud file upload using Cloudinary + DB storage + user linkage ✅
 - Day 8: File content extraction using Apache Tika + storing extracted text in DB ✅
 - Day 9: Installed Ollama and tested local LLM API integration (no backend changes) ✅
+- Day 10: Integrated Spring Boot with Ollama (local LLM) and created AI question-answer API ✅
 
 ## 🚀 Run Project
 ```bash
