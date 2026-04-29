@@ -16,6 +16,36 @@ public class AiController {
         this.knowledgeRepo = knowledgeRepo;
     }
 
+    private String findRelevantContent(String content, String question) {
+
+        String[] paragraphs = content.split("\\n\\s*\\n");
+
+        String[] keywords = question.toLowerCase().split("\\s+");
+
+        StringBuilder relevantText = new StringBuilder();
+
+        for (String paragraph : paragraphs) {
+            String lowerParagraph = paragraph.toLowerCase();
+
+            for (String keyword : keywords) {
+                if (keyword.length() > 3 && lowerParagraph.contains(keyword)) {
+                    relevantText.append(paragraph).append("\n\n");
+                    break;
+                }
+            }
+
+            if (relevantText.length() > 4000) {
+                break;
+            }
+        }
+
+        if (relevantText.length() == 0) {
+            return content.length() > 4000 ? content.substring(0, 4000) : content;
+        }
+
+        return relevantText.toString();
+    }
+
     // ✅ Existing API (general AI)
     @PostMapping("/ask")
     public String askAi(@RequestBody AiRequest request) {
@@ -49,9 +79,7 @@ public class AiController {
         }
 
         // ⚠️ Limit content (important for small models)
-        String shortContent = content.length() > 4000
-                ? content.substring(0, 4000)
-                : content;
+        String relevantContent = findRelevantContent(content, request.getQuestion());
 
         // 2. Build prompt
         String prompt = """
@@ -64,7 +92,7 @@ public class AiController {
                 %s
 
                 Answer:
-                """.formatted(shortContent, request.getQuestion());
+                """.formatted(relevantContent, request.getQuestion());
 
         // 3. Call Ollama
         String ollamaUrl = "http://localhost:11434/api/generate";

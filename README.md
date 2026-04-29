@@ -32,6 +32,7 @@ Backend system built using Spring Boot with focus on scalable architecture, clou
 - Day 9: Installed Ollama and tested local LLM API integration (no backend changes) ✅
 - Day 10: Integrated Spring Boot with Ollama (local LLM) and created AI question-answer API ✅
 - Day 11: Implemented context-based AI Q&A using stored document content(basic RAG) ✅
+- Day 12: Improved AI responses using keyword-based context retrieval (basic RAG implementation) ✅
 
 ## 🚀 Run Project
 ```bash
