@@ -3,6 +3,7 @@ package ai_knowledge_platform;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
@@ -10,16 +11,20 @@ import java.util.Map;
 public class AiController {
 
     private final KnowledgeRepository knowledgeRepo;
+    private final ChatHistoryRepository chatRepo;
+    private final UserRepository userRepo;
 
-    // ✅ Constructor injection
-    public AiController(KnowledgeRepository knowledgeRepo) {
+    public AiController(KnowledgeRepository knowledgeRepo,
+            ChatHistoryRepository chatRepo,
+            UserRepository userRepo) {
         this.knowledgeRepo = knowledgeRepo;
+        this.chatRepo = chatRepo;
+        this.userRepo = userRepo;
     }
 
     private String findRelevantContent(String content, String question) {
 
         String[] paragraphs = content.split("\\n\\s*\\n");
-
         String[] keywords = question.toLowerCase().split("\\s+");
 
         StringBuilder relevantText = new StringBuilder();
@@ -46,7 +51,6 @@ public class AiController {
         return relevantText.toString();
     }
 
-    // ✅ Existing API (general AI)
     @PostMapping("/ask")
     public String askAi(@RequestBody AiRequest request) {
 
@@ -64,13 +68,14 @@ public class AiController {
         return response.get("response").toString();
     }
 
-    // 🔥 NEW API (AI + your document)
     @PostMapping("/ask-from-document")
     public String askFromDocument(@RequestBody DocumentQuestionRequest request) {
 
-        // 1. Get document from DB
         Knowledge knowledge = knowledgeRepo.findById(request.getKnowledgeId())
                 .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        User user = userRepo.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         String content = knowledge.getContent();
 
@@ -78,10 +83,8 @@ public class AiController {
             throw new RuntimeException("No content found for this document");
         }
 
-        // ⚠️ Limit content (important for small models)
         String relevantContent = findRelevantContent(content, request.getQuestion());
 
-        // 2. Build prompt
         String prompt = """
                 You are an AI assistant. Answer the user's question using ONLY the document content below.
 
@@ -94,7 +97,6 @@ public class AiController {
                 Answer:
                 """.formatted(relevantContent, request.getQuestion());
 
-        // 3. Call Ollama
         String ollamaUrl = "http://localhost:11434/api/generate";
 
         RestTemplate restTemplate = new RestTemplate();
@@ -106,6 +108,17 @@ public class AiController {
 
         Map response = restTemplate.postForObject(ollamaUrl, body, Map.class);
 
-        return response.get("response").toString();
+        String aiAnswer = response.get("response").toString();
+
+        ChatHistory chat = new ChatHistory();
+        chat.setQuestion(request.getQuestion());
+        chat.setAnswer(aiAnswer);
+        chat.setCreatedAt(LocalDateTime.now());
+        chat.setUser(user);
+        chat.setKnowledge(knowledge);
+
+        chatRepo.save(chat);
+
+        return aiAnswer;
     }
 }
