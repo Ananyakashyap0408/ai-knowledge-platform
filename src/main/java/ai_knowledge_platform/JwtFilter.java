@@ -21,16 +21,20 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getServletPath();
+        System.out.println("JWT FILTER PATH = " + path);
 
-        // ✅ Allow public endpoints
-        if (path.equals("/users/signup") || path.equals("/users/login")) {
+        // ✅ Allow public endpoints (IMPORTANT FIX)
+        if (path.startsWith("/users/signup")
+                || path.startsWith("/users/login")
+                || path.startsWith("/redis")) {
+
             filterChain.doFilter(request, response);
             return;
         }
 
         String authHeader = request.getHeader("Authorization");
 
-        // ✅ If no token → let Spring handle (DON'T block here)
+        // ✅ If no token → let Spring Security handle it
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -42,7 +46,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String email = JwtUtil.extractEmail(token);
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null,
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    email,
+                    null,
                     Collections.emptyList());
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
