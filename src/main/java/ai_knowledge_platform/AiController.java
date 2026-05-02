@@ -1,5 +1,6 @@
 package ai_knowledge_platform;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,13 +14,16 @@ public class AiController {
     private final KnowledgeRepository knowledgeRepo;
     private final ChatHistoryRepository chatRepo;
     private final UserRepository userRepo;
+    private final StringRedisTemplate redisTemplate;
 
     public AiController(KnowledgeRepository knowledgeRepo,
             ChatHistoryRepository chatRepo,
-            UserRepository userRepo) {
+            UserRepository userRepo,
+            StringRedisTemplate redisTemplate) {
         this.knowledgeRepo = knowledgeRepo;
         this.chatRepo = chatRepo;
         this.userRepo = userRepo;
+        this.redisTemplate = redisTemplate;
     }
 
     private String findRelevantContent(String content, String question) {
@@ -70,6 +74,13 @@ public class AiController {
 
     @PostMapping("/ask-from-document")
     public String askFromDocument(@RequestBody DocumentQuestionRequest request) {
+        String cacheKey = "doc:" + request.getKnowledgeId() + ":" + request.getQuestion();
+        String cached = redisTemplate.opsForValue().get(cacheKey);
+
+        if (cached != null) {
+            System.out.println("CACHE HIT");
+            return cached; // ⚡ return instantly
+        }
 
         Knowledge knowledge = knowledgeRepo.findById(request.getKnowledgeId())
                 .orElseThrow(() -> new RuntimeException("Document not found"));
@@ -109,6 +120,7 @@ public class AiController {
         Map response = restTemplate.postForObject(ollamaUrl, body, Map.class);
 
         String aiAnswer = response.get("response").toString();
+        redisTemplate.opsForValue().set(cacheKey, aiAnswer);
 
         ChatHistory chat = new ChatHistory();
         chat.setQuestion(request.getQuestion());

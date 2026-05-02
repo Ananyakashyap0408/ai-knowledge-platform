@@ -36,6 +36,7 @@ Backend system built using Spring Boot with focus on scalable architecture, clou
 - Day 13: Improved AI responses using keyword-based context handling ✅
 - Day 14: Implemented chat history storage for AI interactions ✅
 - Day 15: Setup Redis using Docker and connected Redis with Spring Boot ✅
+- Day 16: Implemented Redis caching for AI responses to improve performance ⚡
 
 ## 🚀 Run Project
 ```bash
