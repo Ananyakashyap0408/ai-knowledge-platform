@@ -1,5 +1,7 @@
 package ai_knowledge_platform;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +17,8 @@ public class AiController {
     private final ChatHistoryRepository chatRepo;
     private final UserRepository userRepo;
     private final StringRedisTemplate redisTemplate;
+
+    private static final Logger logger = LoggerFactory.getLogger(AiController.class);
 
     public AiController(KnowledgeRepository knowledgeRepo,
             ChatHistoryRepository chatRepo,
@@ -58,6 +62,8 @@ public class AiController {
     @PostMapping("/ask")
     public String askAi(@RequestBody AiRequest request) {
 
+        logger.info("General AI question received");
+
         String ollamaUrl = "http://localhost:11434/api/generate";
 
         RestTemplate restTemplate = new RestTemplate();
@@ -67,19 +73,28 @@ public class AiController {
                 "prompt", request.getQuestion(),
                 "stream", false);
 
+        logger.info("Calling Ollama for general AI response");
+
         Map response = restTemplate.postForObject(ollamaUrl, body, Map.class);
+
+        logger.info("General AI response received successfully");
 
         return response.get("response").toString();
     }
 
     @PostMapping("/ask-from-document")
     public String askFromDocument(@RequestBody DocumentQuestionRequest request) {
+
+        logger.info("AI document question received. knowledgeId={}, userId={}",
+                request.getKnowledgeId(), request.getUserId());
+
         String cacheKey = "doc:" + request.getKnowledgeId() + ":" + request.getQuestion();
+
         String cached = redisTemplate.opsForValue().get(cacheKey);
 
         if (cached != null) {
-            System.out.println("CACHE HIT");
-            return cached; // ⚡ return instantly
+            logger.info("Returning response from Redis cache for knowledgeId={}", request.getKnowledgeId());
+            return cached;
         }
 
         Knowledge knowledge = knowledgeRepo.findById(request.getKnowledgeId())
@@ -117,10 +132,15 @@ public class AiController {
                 "prompt", prompt,
                 "stream", false);
 
+        logger.info("Calling Ollama for document-based AI response");
+
         Map response = restTemplate.postForObject(ollamaUrl, body, Map.class);
 
         String aiAnswer = response.get("response").toString();
+
         redisTemplate.opsForValue().set(cacheKey, aiAnswer);
+
+        logger.info("AI response cached in Redis for knowledgeId={}", request.getKnowledgeId());
 
         ChatHistory chat = new ChatHistory();
         chat.setQuestion(request.getQuestion());
@@ -130,6 +150,8 @@ public class AiController {
         chat.setKnowledge(knowledge);
 
         chatRepo.save(chat);
+
+        logger.info("Chat history saved successfully for userId={}", request.getUserId());
 
         return aiAnswer;
     }
