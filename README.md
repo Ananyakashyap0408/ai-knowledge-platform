@@ -39,7 +39,7 @@ Backend system built using Spring Boot with focus on scalable architecture, clou
 - Day 16: Implemented Redis caching for AI responses to improve performance ⚡
 - Day 17: Added Redis-based rate limiting for AI APIs ✅
 - Day 18: Added logging and async support for production-ready backend behavior ✅
-- Day 19: Containerized application using Docker and resolved DB connection using host.docker.internal 
+- Day 19: Containerized the application using Docker and resolved DB connection using host.docker.internal 
 
 ## 🚀 Run Project
 ```bash
